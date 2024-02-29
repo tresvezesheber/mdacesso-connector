@@ -1,14 +1,12 @@
 package br.dev.hebio.mdacessoconnector.util;
 
+import br.dev.hebio.mdacessoconnector.model.pessoa.Pessoa;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 @Component
 public class DatabaseConnection {
@@ -50,4 +48,34 @@ public class DatabaseConnection {
             e.printStackTrace();
         }
     }
+
+
+    public void insertPessoa(Pessoa pessoa) {
+        DataSource dataSource = getDataSource();
+        try (Connection connection = dataSource.getConnection()) {
+            String sql = "INSERT INTO pessoa (cd_pessoa, " +
+                    "nu_matricula, " +
+                    "nm_pessoa, " +
+                    "cd_situacao_pessoa, " +
+                    "cd_estrutura_organizacional, " +
+                    "cd_estrutura_org_empresa, " +
+                    "nu_cpf) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, pessoa.cd_pessoa());
+            statement.setLong(2, pessoa.nu_matricula());
+            statement.setString(3, pessoa.nm_pessoa());
+            statement.setInt(4, pessoa.cd_situacao_pessoa());
+            statement.setInt(5, pessoa.cd_estrutura_organizacional());
+            statement.setInt(6, pessoa.cd_estrutura_org_empresa());
+            statement.setString(7, pessoa.nu_cpf());
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
 }

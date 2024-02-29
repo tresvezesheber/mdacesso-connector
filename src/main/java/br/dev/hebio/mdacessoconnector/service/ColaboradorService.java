@@ -38,7 +38,7 @@ public class ColaboradorService {
         }
     }
 
-    public static String defineAcesso(char colaboradorSituacao) {
+    public static Byte defineAcesso(char colaboradorSituacao) {
         /*A - ATIVO, C - CONTRATO DE TRABALHO SUSPENSO, D - DEMITIDO, E - LICENÇA MATER., F - FÉRIAS, G - RECESSO REMUNERADO DE ESTAGIO, I - APOS. POR INCAPACIDADE PERMANENTE,
         K - CESSÃO/REQUISIÇÃO, L - LICENÇA S/VENC, M - SERV. MILITAR, N - MANDATO SINDICAL ÔNUS DO EMPREGADOR, O - DOENÇA OCUPACIONAL, P - AF. PREVIDÊNCIA, Q - PRISÃO/CÁRCERE,
                 R - LICENÇA REMUN., S - MANDATO SINDICAL ÔNUS SINDICATO, T - AF. AC. TRABALHO, U - OUTROS, V - AVISO PRÉVIO, W - LICENÇA MATER. COMPL. 180 DIAS, X - C/DEM. NO MÊS,
@@ -52,8 +52,8 @@ public class ColaboradorService {
                 || colaboradorSituacao == 'V'
                 || colaboradorSituacao == 'W'
                 || colaboradorSituacao == 'Y')) {
-            return "1";
+            return 11;
         }
-        return "0";
+        return 10;
     }
 }
