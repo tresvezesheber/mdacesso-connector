@@ -75,7 +75,19 @@ public class DatabaseConnection {
         }
     }
 
+    public void updatePessoa(Pessoa pessoa) {
+        DataSource dataSource = getDataSource();
+        try (Connection connection = dataSource.getConnection()) {
+            String sql = "UPDATE pessoa SET cd_situacao_pessoa = ? WHERE nu_matricula = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setByte(1, pessoa.cd_situacao_pessoa());
+            statement.setLong(2, pessoa.nu_matricula());
 
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }

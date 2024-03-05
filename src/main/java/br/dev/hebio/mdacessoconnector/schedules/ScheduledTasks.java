@@ -12,6 +12,7 @@ import br.dev.hebio.mdacessoconnector.util.DatabaseConnection;
 import br.dev.hebio.mdacessoconnector.util.HashUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,27 +47,27 @@ public class ScheduledTasks {
             colaborador.setHash(HashUtil.calculateHash(dadosView));
             colaboradorRepository.save(colaborador);
         }
-        enviaNovosCartoesParaMdb();
+        enviaNovosColaboradoresParaTabelaPessoas();
         long tempoFim = System.nanoTime();
         long tempoTotal = (tempoFim - tempoInicio) / 1000000;
         System.out.println(LocalDateTime.now() + " - importarColaboradoresNaPrimeiraExecucao() Tempo total de execução: " + tempoTotal + "ms");
     }
 
-//    @Scheduled(fixedRate = 300000) // 300000ms = 5 minutos
-//    public void verificarEAtualizarDados() {
-//        long tempoInicio = System.nanoTime();
-//        List<ColaboradorDadosView> colaboradoresView = viewService.listarColaboradoresAdmitidos();
-//        for (ColaboradorDadosView dadosView : colaboradoresView) {
-//            colaboradorService.verificarEAtualizarDados(dadosView);
-//        }
-//        enviaNovosCartoesParaMdb();
-//        enviaCartoesAtualizadosParaMdb();
-//        long tempoFim = System.nanoTime();
-//        long tempoTotal = (tempoFim - tempoInicio) / 1000000;
-//        System.out.println(LocalDateTime.now() + " - verificarEAtualizarDados() Tempo total de execução: " + tempoTotal + "ms");
-//    }
+    @Scheduled(fixedRate = 300000) // 300000ms = 5 minutos
+    public void verificarEAtualizarDados() {
+        long tempoInicio = System.nanoTime();
+        List<ColaboradorDadosView> colaboradoresView = viewService.listarColaboradoresAdmitidos();
+        for (ColaboradorDadosView dadosView : colaboradoresView) {
+            colaboradorService.verificarEAtualizarDados(dadosView);
+        }
+        enviaNovosColaboradoresParaTabelaPessoas();
+        enviaCartoesAtualizadosParaMdb();
+        long tempoFim = System.nanoTime();
+        long tempoTotal = (tempoFim - tempoInicio) / 1000000;
+        System.out.println(LocalDateTime.now() + " - verificarEAtualizarDados() Tempo total de execução: " + tempoTotal + "ms");
+    }
 
-    public void enviaNovosCartoesParaMdb() {
+    public void enviaNovosColaboradoresParaTabelaPessoas() {
         colaboradorRepository.findAllBySyncStatusIs(SyncStatus.CRIAR).forEach(colaborador -> {
             databaseConnection.insertPessoa(new Pessoa(colaborador));
             colaborador.setSyncStatus(SyncStatus.SINCRONIZADO);
@@ -74,11 +75,11 @@ public class ScheduledTasks {
         });
     }
 
-//    public void enviaCartoesAtualizadosParaMdb() {
-//        colaboradorRepository.findAllBySyncStatusIs(SyncStatus.ATUALIZAR).forEach(colaborador -> {
-//            databaseConnection.atualizaDadosNaTabelaCartoes(new CartaoColaborador(colaborador));
-//            colaborador.setSyncStatus(SyncStatus.SINCRONIZADO);
-//            colaboradorRepository.save(colaborador);
-//        });
-//    }
+    public void enviaCartoesAtualizadosParaMdb() {
+        colaboradorRepository.findAllBySyncStatusIs(SyncStatus.ATUALIZAR).forEach(colaborador -> {
+            databaseConnection.updatePessoa(new Pessoa(colaborador));
+            colaborador.setSyncStatus(SyncStatus.SINCRONIZADO);
+            colaboradorRepository.save(colaborador);
+        });
+    }
 }
