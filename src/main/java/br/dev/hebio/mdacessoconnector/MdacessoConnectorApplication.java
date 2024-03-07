@@ -16,4 +16,5 @@ public class MdacessoConnectorApplication {
     public static void main(String[] args) {
         SpringApplication.run(MdacessoConnectorApplication.class, args);
     }
+
 }

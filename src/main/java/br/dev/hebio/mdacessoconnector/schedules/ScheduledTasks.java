@@ -3,6 +3,7 @@ package br.dev.hebio.mdacessoconnector.schedules;
 import br.dev.hebio.mdacessoconnector.model.colaborador.Colaborador;
 import br.dev.hebio.mdacessoconnector.model.colaborador.ColaboradorDadosView;
 import br.dev.hebio.mdacessoconnector.model.colaborador.SyncStatus;
+import br.dev.hebio.mdacessoconnector.model.credencial.Credencial;
 import br.dev.hebio.mdacessoconnector.model.pessoa.Pessoa;
 import br.dev.hebio.mdacessoconnector.repository.ColaboradorRepository;
 import br.dev.hebio.mdacessoconnector.service.ColaboradorService;
@@ -47,7 +48,7 @@ public class ScheduledTasks {
             colaborador.setHash(HashUtil.calculateHash(dadosView));
             colaboradorRepository.save(colaborador);
         }
-        enviaNovosColaboradoresParaTabelaPessoas();
+        enviarNovosColaboradoresParaMDAcesso();
         long tempoFim = System.nanoTime();
         long tempoTotal = (tempoFim - tempoInicio) / 1000000;
         System.out.println(LocalDateTime.now() + " - importarColaboradoresNaPrimeiraExecucao() Tempo total de execução: " + tempoTotal + "ms");
@@ -60,22 +61,28 @@ public class ScheduledTasks {
         for (ColaboradorDadosView dadosView : colaboradoresView) {
             colaboradorService.verificarEAtualizarDados(dadosView);
         }
-        enviaNovosColaboradoresParaTabelaPessoas();
-        enviaCartoesAtualizadosParaMdb();
+        enviarNovosColaboradoresParaMDAcesso();
+//        enviarCartoesAtualizadosParaMDAcesso();
         long tempoFim = System.nanoTime();
         long tempoTotal = (tempoFim - tempoInicio) / 1000000;
         System.out.println(LocalDateTime.now() + " - verificarEAtualizarDados() Tempo total de execução: " + tempoTotal + "ms");
     }
 
-    public void enviaNovosColaboradoresParaTabelaPessoas() {
+    public void enviarNovosColaboradoresParaMDAcesso() {
         colaboradorRepository.findAllBySyncStatusIs(SyncStatus.CRIAR).forEach(colaborador -> {
-            databaseConnection.insertPessoa(new Pessoa(colaborador));
+            Pessoa pessoa = new Pessoa(colaborador);
+            Credencial credencial = new Credencial(colaborador);
+
+            databaseConnection.insertPessoa(pessoa);
+            databaseConnection.insertCredencial(credencial);
+            databaseConnection.insertPessoaCredencialRelation(pessoa.nu_matricula());
+
             colaborador.setSyncStatus(SyncStatus.SINCRONIZADO);
             colaboradorRepository.save(colaborador);
         });
     }
 
-    public void enviaCartoesAtualizadosParaMdb() {
+    public void enviarCartoesAtualizadosParaMDAcesso() {
         colaboradorRepository.findAllBySyncStatusIs(SyncStatus.ATUALIZAR).forEach(colaborador -> {
             databaseConnection.updatePessoa(new Pessoa(colaborador));
             colaborador.setSyncStatus(SyncStatus.SINCRONIZADO);
